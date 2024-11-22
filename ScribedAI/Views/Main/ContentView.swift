@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject private var appSettings: AppSettings
+    @StateObject private var audioRecorder = AudioRecorder()
     @State private var selectedTab = 0
     
     var body: some View {
@@ -12,6 +13,7 @@ struct ContentView: View {
                 Spacer()
                 
                 RecordButton()
+                    .environmentObject(audioRecorder)
                 
                 Spacer()
             }
@@ -26,7 +28,7 @@ struct ContentView: View {
                 case "history":
                     HistoryView()
                 case "transcripts":
-                    TranscriptsView()
+                    TranscriptsView(audioRecorder: audioRecorder)
                 case "settings":
                     SettingsView()
                 default:
