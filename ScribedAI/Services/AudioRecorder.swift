@@ -95,4 +95,9 @@ class AudioRecorder: NSObject, ObservableObject {
             recordings = decoded
         }
     }
+    
+    func deleteRecordings(at offsets: IndexSet) {
+        recordings.remove(atOffsets: offsets)
+        saveRecordings()
+    }
 } 

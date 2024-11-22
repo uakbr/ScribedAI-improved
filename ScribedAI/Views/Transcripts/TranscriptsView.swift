@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct TranscriptsView: View {
-    @StateObject private var audioRecorder = AudioRecorder()
+    @ObservedObject var audioRecorder: AudioRecorder
     @State private var searchText = ""
     
     var body: some View {
@@ -9,7 +9,11 @@ struct TranscriptsView: View {
             ForEach(filteredTranscripts) { recording in
                 TranscriptRow(transcript: recording)
             }
-            .onDelete(perform: deleteTranscripts)
+            .onDelete { indexSet in
+                withAnimation {
+                    audioRecorder.deleteRecordings(at: indexSet)
+                }
+            }
         }
         .navigationTitle("Transcripts")
         .searchable(text: $searchText)
@@ -23,10 +27,6 @@ struct TranscriptsView: View {
             return audioRecorder.recordings
         }
         return audioRecorder.recordings.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
-    }
-    
-    private func deleteTranscripts(at offsets: IndexSet) {
-        audioRecorder.recordings.remove(atOffsets: offsets)
     }
 }
 
