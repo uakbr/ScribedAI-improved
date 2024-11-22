@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		1407EC252CF0785F00DCFAD2 /* WhisperKit in Frameworks */ = {isa = PBXBuildFile; productRef = 1407EC242CF0785F00DCFAD2 /* WhisperKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		1407EC072CF077EA00DCFAD2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1407EC252CF0785F00DCFAD2 /* WhisperKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = ScribedAI;
 			packageProductDependencies = (
+				1407EC242CF0785F00DCFAD2 /* WhisperKit */,
 			);
 			productName = ScribedAI;
 			productReference = 1407EBF62CF077EA00DCFAD2 /* ScribedAI.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 1407EBED2CF077EA00DCFAD2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				1407EC232CF0785F00DCFAD2 /* XCRemoteSwiftPackageReference "WhisperKit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 1407EBF72CF077EA00DCFAD2 /* Products */;
 			projectDirPath = "";
@@ -558,6 +567,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		1407EC232CF0785F00DCFAD2 /* XCRemoteSwiftPackageReference "WhisperKit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/argmaxinc/WhisperKit";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		1407EC242CF0785F00DCFAD2 /* WhisperKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 1407EC232CF0785F00DCFAD2 /* XCRemoteSwiftPackageReference "WhisperKit" */;
+			productName = WhisperKit;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 1407EBEE2CF077EA00DCFAD2 /* Project object */;
 }
