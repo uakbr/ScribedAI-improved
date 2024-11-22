@@ -1,13 +1,13 @@
 import SwiftUI
 
 struct TranscriptsView: View {
-    @State private var transcripts: [Transcript] = []
+    @StateObject private var audioRecorder = AudioRecorder()
     @State private var searchText = ""
     
     var body: some View {
         List {
-            ForEach(filteredTranscripts) { transcript in
-                TranscriptRow(transcript: transcript)
+            ForEach(filteredTranscripts) { recording in
+                TranscriptRow(transcript: recording)
             }
             .onDelete(perform: deleteTranscripts)
         }
@@ -18,27 +18,20 @@ struct TranscriptsView: View {
         }
     }
     
-    private var filteredTranscripts: [Transcript] {
+    private var filteredTranscripts: [Recording] {
         if searchText.isEmpty {
-            return transcripts
+            return audioRecorder.recordings
         }
-        return transcripts.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
+        return audioRecorder.recordings.filter { $0.text.localizedCaseInsensitiveContains(searchText) }
     }
     
     private func deleteTranscripts(at offsets: IndexSet) {
-        transcripts.remove(atOffsets: offsets)
+        audioRecorder.recordings.remove(atOffsets: offsets)
     }
 }
 
-struct Transcript: Identifiable {
-    let id = UUID()
-    let date: Date
-    let text: String
-    let language: String
-}
-
 struct TranscriptRow: View {
-    let transcript: Transcript
+    let transcript: Recording
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
