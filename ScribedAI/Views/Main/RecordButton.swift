@@ -13,6 +13,6 @@ struct RecordButton: View {
                 .symbolEffect(.pulse)
         }
         .buttonStyle(.borderless)
-        .contentTransition(.symbolEffect(.bounce))
+        .contentTransition(.identity)
     }
 } 
