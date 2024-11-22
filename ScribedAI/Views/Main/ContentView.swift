@@ -27,6 +27,7 @@ struct ContentView: View {
                 switch destination {
                 case "history":
                     HistoryView()
+                        .environmentObject(audioRecorder)
                 case "transcripts":
                     TranscriptsView(audioRecorder: audioRecorder)
                 case "settings":
