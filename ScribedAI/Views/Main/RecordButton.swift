@@ -23,11 +23,10 @@ struct RecordButton: View {
                     Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
                         .font(.system(size: 72))
                         .foregroundColor(audioRecorder.isRecording ? .red : .blue)
-                        .symbolEffect(.pulse, isActive: audioRecorder.isRecording)
+                        .symbolEffect(.bounce, options: .repeat(1), isActive: audioRecorder.isRecording)
                 }
             }
             .buttonStyle(.borderless)
-            .contentTransition(.identity)
             .disabled(audioRecorder.isTranscribing)
             .shadow(color: colorScheme == .dark ? .clear : .black.opacity(0.1), radius: 10)
             
@@ -53,8 +52,6 @@ struct RecordButton: View {
                 .transition(.scale.combined(with: .opacity))
             }
         }
-        .animation(.spring(duration: 0.3), value: audioRecorder.isRecording)
-        .animation(.spring(duration: 0.3), value: audioRecorder.isTranscribing)
-        .animation(.spring(duration: 0.3), value: audioRecorder.recordingFeedback)
+        .animation(.spring(response: 0.3), value: audioRecorder.isRecording)
     }
 } 

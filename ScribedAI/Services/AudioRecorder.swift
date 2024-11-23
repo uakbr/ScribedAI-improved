@@ -1,7 +1,7 @@
 import Foundation
 import AVFoundation
 
-class AudioRecorder: NSObject, ObservableObject {
+class AudioRecorder: NSObject, ObservableObject, AVAudioPlayerDelegate {
     @Published var isRecording = false
     @Published var isTranscribing = false
     @Published var recordings: [Recording] = []
@@ -190,8 +190,11 @@ class AudioRecorder: NSObject, ObservableObject {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playback)
+            try audioSession.setActive(true)
 
             audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.delegate = self
+            audioPlayer?.prepareToPlay()
             audioPlayer?.play()
         } catch {
             DispatchQueue.main.async {
@@ -199,5 +202,9 @@ class AudioRecorder: NSObject, ObservableObject {
             }
             print("Error playing audio: \(error.localizedDescription)")
         }
+    }
+
+    func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
+        print("Audio playback finished successfully: \(flag)")
     }
 } 
