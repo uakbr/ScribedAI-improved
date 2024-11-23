@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct TranscriptsView: View {
     @ObservedObject var audioRecorder: AudioRecorder
