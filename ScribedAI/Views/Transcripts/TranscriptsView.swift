@@ -42,8 +42,10 @@ struct TranscriptsView: View {
         .sheet(item: $selectedTranscript) { transcript in
             TranscriptDetailView(transcript: transcript, audioRecorder: audioRecorder)
         }
-        .onReceive(audioRecorder.transcriptionManager?.errorMessage.publisher ?? Empty().eraseToAnyPublisher()) { errorMessage in
-            showErrorAlert = true
+        .onReceive(audioRecorder.transcriptionManager?.$errorMessage ?? Just(nil).eraseToAnyPublisher()) { errorMessage in
+            if errorMessage != nil {
+                showErrorAlert = true
+            }
         }
         .alert(isPresented: $showErrorAlert) {
             Alert(
