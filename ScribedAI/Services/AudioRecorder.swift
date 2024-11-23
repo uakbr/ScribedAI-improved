@@ -9,6 +9,7 @@ class AudioRecorder: NSObject, ObservableObject {
     private var audioRecorder: AVAudioRecorder?
     private var currentRecordingURL: URL?
     private var transcriptionManager: TranscriptionManager?
+    private var audioPlayer: AVAudioPlayer?
     
     override init() {
         super.init()
@@ -139,9 +140,9 @@ class AudioRecorder: NSObject, ObservableObject {
         do {
             let audioSession = AVAudioSession.sharedInstance()
             try audioSession.setCategory(.playback)
-            
-            let player = try AVAudioPlayer(contentsOf: url)
-            player.play()
+
+            audioPlayer = try AVAudioPlayer(contentsOf: url)
+            audioPlayer?.play()
         } catch {
             print("Error playing audio: \(error.localizedDescription)")
         }
