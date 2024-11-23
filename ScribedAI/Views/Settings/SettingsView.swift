@@ -54,10 +54,12 @@ struct SettingsView: View {
                     }
                 }
                 .onChange(of: appSettings.selectedModel) { oldValue, newValue in
+                    isChangingModel = true
                     Task {
-                        isChangingModel = true
                         await audioRecorder.updateTranscriptionModel(newValue)
-                        isChangingModel = false
+                        await MainActor.run {
+                            isChangingModel = false
+                        }
                     }
                 }
                 .overlay {

@@ -28,6 +28,7 @@ class TranscriptionManager: ObservableObject {
         }
     }
 
+    @MainActor
     func transcribeAudio(url: URL) async throws -> String {
         guard let whisperKit = whisperKit else {
             throw NSError(domain: "TranscriptionManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "WhisperKit not initialized"])

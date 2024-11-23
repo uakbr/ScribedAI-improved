@@ -65,14 +65,22 @@ class AudioRecorder: NSObject, ObservableObject {
     
     func stopRecording() {
         audioRecorder?.stop()
-        isRecording = false
-        recordingFeedback = "Processing..."
+
+        // Ensure these updates are on the main thread
+        DispatchQueue.main.async {
+            self.isRecording = false
+            self.recordingFeedback = "Processing..."
+        }
         
         guard let url = currentRecordingURL else { return }
-        
+
         Task {
             do {
-                isTranscribing = true
+                // Update `isTranscribing` on the main thread
+                await MainActor.run {
+                    self.isTranscribing = true
+                }
+
                 guard let manager = transcriptionManager else {
                     throw NSError(domain: "AudioRecorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "TranscriptionManager not initialized"])
                 }
@@ -85,12 +93,12 @@ class AudioRecorder: NSObject, ObservableObject {
                     language: "en",
                     duration: audioRecorder?.currentTime ?? 0
                 )
-                
+
                 await MainActor.run {
-                    recordings.append(recording)
-                    saveRecordings()
-                    isTranscribing = false
-                    recordingFeedback = "Recording saved!"
+                    self.recordings.append(recording)
+                    self.saveRecordings()
+                    self.isTranscribing = false
+                    self.recordingFeedback = "Recording saved!"
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
                         self.recordingFeedback = ""
                     }
@@ -98,8 +106,8 @@ class AudioRecorder: NSObject, ObservableObject {
             } catch {
                 print("Transcription failed: \(error.localizedDescription)")
                 await MainActor.run {
-                    recordingFeedback = "Transcription failed"
-                    isTranscribing = false
+                    self.recordingFeedback = "Transcription failed"
+                    self.isTranscribing = false
                 }
             }
         }
