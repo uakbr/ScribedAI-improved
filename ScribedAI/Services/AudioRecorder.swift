@@ -9,7 +9,7 @@ class AudioRecorder: NSObject, ObservableObject, AVAudioPlayerDelegate {
     @Published var errorMessage: String?
     private var audioRecorder: AVAudioRecorder?
     private var currentRecordingURL: URL?
-    private var transcriptionManager: TranscriptionManager?
+    var transcriptionManager: TranscriptionManager?
     private var audioPlayer: AVAudioPlayer?
     private let recordingsDirectory: URL
     private let recordingsMetadataURL: URL

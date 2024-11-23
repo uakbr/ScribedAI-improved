@@ -41,15 +41,15 @@ struct TranscriptsView: View {
         .sheet(item: $selectedTranscript) { transcript in
             TranscriptDetailView(transcript: transcript, audioRecorder: audioRecorder)
         }
-        .onReceive(audioRecorder.transcriptionManager.$errorMessage.compactMap { $0 }) { errorMessage in
+        .onReceive(audioRecorder.transcriptionManager?.$errorMessage.compactMap { $0 }) { errorMessage in
             showErrorAlert = true
         }
         .alert(isPresented: $showErrorAlert) {
             Alert(
                 title: Text("Error"),
-                message: Text(audioRecorder.transcriptionManager.errorMessage ?? "An unknown error occurred."),
+                message: Text(audioRecorder.transcriptionManager?.errorMessage ?? "An unknown error occurred."),
                 dismissButton: .default(Text("OK")) {
-                    audioRecorder.transcriptionManager.errorMessage = nil
+                    audioRecorder.transcriptionManager?.errorMessage = nil
                 }
             )
         }
