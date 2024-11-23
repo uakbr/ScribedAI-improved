@@ -6,6 +6,7 @@ class AudioRecorder: NSObject, ObservableObject {
     @Published var isTranscribing = false
     @Published var recordings: [Recording] = []
     @Published var recordingFeedback = ""
+    @Published var errorMessage: String?
     private var audioRecorder: AVAudioRecorder?
     private var currentRecordingURL: URL?
     private var transcriptionManager: TranscriptionManager?
@@ -79,6 +80,9 @@ class AudioRecorder: NSObject, ObservableObject {
             recordingFeedback = "Recording..."
         } catch {
             recordingFeedback = "Failed to start recording"
+            DispatchQueue.main.async {
+                self.errorMessage = "Unable to start recording: \(error.localizedDescription)"
+            }
             print("Could not start recording: \(error.localizedDescription)")
         }
     }
@@ -130,6 +134,7 @@ class AudioRecorder: NSObject, ObservableObject {
                 await MainActor.run {
                     self.recordingFeedback = "Transcription failed"
                     self.isTranscribing = false
+                    self.errorMessage = "Transcription failed: \(error.localizedDescription)"
                 }
             }
         }
@@ -189,6 +194,9 @@ class AudioRecorder: NSObject, ObservableObject {
             audioPlayer = try AVAudioPlayer(contentsOf: url)
             audioPlayer?.play()
         } catch {
+            DispatchQueue.main.async {
+                self.errorMessage = "Error playing audio: \(error.localizedDescription)"
+            }
             print("Error playing audio: \(error.localizedDescription)")
         }
     }

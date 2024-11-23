@@ -4,6 +4,7 @@ struct TranscriptsView: View {
     @ObservedObject var audioRecorder: AudioRecorder
     @State private var searchText = ""
     @State private var selectedTranscript: Recording?
+    @State private var showErrorAlert = false
     
     var body: some View {
         Group {
@@ -39,6 +40,18 @@ struct TranscriptsView: View {
         }
         .sheet(item: $selectedTranscript) { transcript in
             TranscriptDetailView(transcript: transcript, audioRecorder: audioRecorder)
+        }
+        .onReceive(audioRecorder.transcriptionManager.$errorMessage.compactMap { $0 }) { errorMessage in
+            showErrorAlert = true
+        }
+        .alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(audioRecorder.transcriptionManager.errorMessage ?? "An unknown error occurred."),
+                dismissButton: .default(Text("OK")) {
+                    audioRecorder.transcriptionManager.errorMessage = nil
+                }
+            )
         }
     }
     

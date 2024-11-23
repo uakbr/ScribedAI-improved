@@ -5,6 +5,7 @@ class TranscriptionManager: ObservableObject {
     @Published var isLoading = false
     private var whisperKit: WhisperKit?
     private var currentModel: String
+    @Published var errorMessage: String?
 
     init(model: String = "tiny") async {
         self.currentModel = model
@@ -14,7 +15,7 @@ class TranscriptionManager: ObservableObject {
     @MainActor
     func updateModel(_ newModel: String) async {
         if currentModel != newModel {
-            currentModel = n    ewModel
+            currentModel = newModel
             await setupWhisperKit()
         }
     }
@@ -24,13 +25,18 @@ class TranscriptionManager: ObservableObject {
         do {
             whisperKit = try await WhisperKit(model: currentModel)
         } catch {
-            print("Failed to initialize WhisperKit: \(error)")
+            self.errorMessage = "Failed to initialize the transcription model: \(error.localizedDescription)"
+            print("Failed to initialize WhisperKit: \(error.localizedDescription)")
         }
     }
 
     func transcribeAudio(url: URL) async throws -> String {
         guard let whisperKit = whisperKit else {
-            throw NSError(domain: "TranscriptionManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "WhisperKit not initialized"])
+            let errorMsg = "Transcription model is not initialized."
+            await MainActor.run {
+                self.errorMessage = errorMsg
+            }
+            throw NSError(domain: "TranscriptionManager", code: 1, userInfo: [NSLocalizedDescriptionKey: errorMsg])
         }
 
         // Update isLoading on main thread
@@ -43,8 +49,14 @@ class TranscriptionManager: ObservableObject {
             }
         }
 
-        // Perform transcription on background thread
-        let results = try await whisperKit.transcribe(audioPath: url.path)
-        return results.first?.text ?? ""
+        do {
+            let results = try await whisperKit.transcribe(audioPath: url.path)
+            return results.first?.text ?? ""
+        } catch {
+            await MainActor.run {
+                self.errorMessage = "Transcription failed: \(error.localizedDescription)"
+            }
+            throw error
+        }
     }
 }

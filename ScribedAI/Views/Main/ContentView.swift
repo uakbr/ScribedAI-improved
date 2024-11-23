@@ -4,6 +4,7 @@ struct ContentView: View {
     @EnvironmentObject private var appSettings: AppSettings
     @StateObject private var audioRecorder = AudioRecorder()
     @State private var selectedTab = 0
+    @State private var showErrorAlert = false
     
     var body: some View {
         NavigationStack {
@@ -40,6 +41,18 @@ struct ContentView: View {
                     )
                 }
             }
+        }
+        .onReceive(audioRecorder.$errorMessage.compactMap { $0 }) { errorMessage in
+            showErrorAlert = true
+        }
+        .alert(isPresented: $showErrorAlert) {
+            Alert(
+                title: Text("Error"),
+                message: Text(audioRecorder.errorMessage ?? "An unknown error occurred."),
+                dismissButton: .default(Text("OK")) {
+                    audioRecorder.errorMessage = nil
+                }
+            )
         }
     }
 }
