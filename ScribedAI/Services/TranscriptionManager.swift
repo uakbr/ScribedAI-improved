@@ -14,7 +14,7 @@ class TranscriptionManager: ObservableObject {
     @MainActor
     func updateModel(_ newModel: String) async {
         if currentModel != newModel {
-            currentModel = newModel
+            currentModel = n    ewModel
             await setupWhisperKit()
         }
     }

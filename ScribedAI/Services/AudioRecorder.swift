@@ -10,15 +10,35 @@ class AudioRecorder: NSObject, ObservableObject {
     private var currentRecordingURL: URL?
     private var transcriptionManager: TranscriptionManager?
     private var audioPlayer: AVAudioPlayer?
+    private let recordingsDirectory: URL
+    private let recordingsMetadataURL: URL
     
     override init() {
+        // Initialize directories before calling super.init()
+        let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        self.recordingsDirectory = documentsDirectory.appendingPathComponent("Recordings")
+        self.recordingsMetadataURL = recordingsDirectory.appendingPathComponent("recordingsMetadata.json")
+
         super.init()
         setupAudioSession()
+        createRecordingsDirectory()
         loadRecordings()
         
         // Initialize TranscriptionManager asynchronously
         Task {
             transcriptionManager = await TranscriptionManager(model: "tiny")
+        }
+    }
+    
+    private func createRecordingsDirectory() {
+        do {
+            try FileManager.default.createDirectory(
+                at: recordingsDirectory,
+                withIntermediateDirectories: true,
+                attributes: nil
+            )
+        } catch {
+            print("Failed to create recordings directory: \(error.localizedDescription)")
         }
     }
     
@@ -40,8 +60,8 @@ class AudioRecorder: NSObject, ObservableObject {
     }
     
     func startRecording() {
-        let filename = "\(Date().ISO8601Format()).m4a"
-        currentRecordingURL = getDocumentsDirectory().appendingPathComponent(filename)
+        let filename = "\(UUID().uuidString).m4a"
+        currentRecordingURL = recordingsDirectory.appendingPathComponent(filename)
         
         guard let url = currentRecordingURL else { return }
         
@@ -116,32 +136,47 @@ class AudioRecorder: NSObject, ObservableObject {
     }
     
     private func getDocumentsDirectory() -> URL {
-        FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        return recordingsDirectory
     }
     
     private func saveRecordings() {
-        let encoder = JSONEncoder()
-        if let encoded = try? encoder.encode(recordings) {
-            UserDefaults.standard.set(encoded, forKey: "recordings")
+        do {
+            let data = try JSONEncoder().encode(recordings)
+            try data.write(to: recordingsMetadataURL)
+        } catch {
+            print("Failed to save recordings metadata: \(error.localizedDescription)")
         }
     }
     
     private func loadRecordings() {
-        if let data = UserDefaults.standard.data(forKey: "recordings"),
-           let decoded = try? JSONDecoder().decode([Recording].self, from: data) {
-            recordings = decoded
+        do {
+            let data = try Data(contentsOf: recordingsMetadataURL)
+            let decodedRecordings = try JSONDecoder().decode([Recording].self, from: data)
+            recordings = decodedRecordings
+        } catch {
+            print("Failed to load recordings metadata: \(error.localizedDescription)")
+            recordings = []
         }
     }
     
     func deleteRecordings(at offsets: IndexSet) {
+        for index in offsets {
+            let recording = recordings[index]
+            do {
+                try FileManager.default.removeItem(at: recording.url)
+            } catch {
+                print("Failed to delete recording file: \(error.localizedDescription)")
+            }
+        }
         recordings.remove(atOffsets: offsets)
         saveRecordings()
     }
     
     func getAudioURL(for recording: Recording) -> URL? {
         let fileManager = FileManager.default
-        if fileManager.fileExists(atPath: recording.url.path) {
-            return recording.url
+        let fileURL = recordingsDirectory.appendingPathComponent(recording.url.lastPathComponent)
+        if fileManager.fileExists(atPath: fileURL.path) {
+            return fileURL
         }
         return nil
     }

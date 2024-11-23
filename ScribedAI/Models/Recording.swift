@@ -1,6 +1,6 @@
 import Foundation
 
-struct Recording: Codable, Identifiable {
+struct Recording: Identifiable, Codable {
     let id: UUID
     let date: Date
     let url: URL
