@@ -33,7 +33,11 @@ struct ContentView: View {
                 case "settings":
                     SettingsView()
                 default:
-                    EmptyView()
+                    ContentUnavailableView(
+                        "Invalid Navigation",
+                        systemImage: "exclamationmark.triangle",
+                        description: Text("The requested page '\(destination)' does not exist")
+                    )
                 }
             }
         }
@@ -43,4 +47,5 @@ struct ContentView: View {
 #Preview {
     ContentView()
         .environmentObject(AppSettings())
+        .environmentObject(AudioRecorder())
 } 

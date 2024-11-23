@@ -5,14 +5,27 @@ class AudioRecorder: NSObject, ObservableObject {
     @Published var isRecording = false
     @Published var isTranscribing = false
     @Published var recordings: [Recording] = []
+    @Published var recordingFeedback = ""
     private var audioRecorder: AVAudioRecorder?
     private var currentRecordingURL: URL?
-    private let transcriptionManager = TranscriptionManager()
+    private var transcriptionManager: TranscriptionManager?
     
     override init() {
         super.init()
         setupAudioSession()
         loadRecordings()
+        
+        // Initialize TranscriptionManager asynchronously
+        Task {
+            transcriptionManager = await TranscriptionManager(model: "tiny")
+        }
+    }
+    
+    @MainActor
+    func updateTranscriptionModel(_ model: String) async {
+        isTranscribing = true
+        await transcriptionManager?.updateModel(model)
+        isTranscribing = false
     }
     
     private func setupAudioSession() {
@@ -42,7 +55,9 @@ class AudioRecorder: NSObject, ObservableObject {
             audioRecorder = try AVAudioRecorder(url: url, settings: settings)
             audioRecorder?.record()
             isRecording = true
+            recordingFeedback = "Recording..."
         } catch {
+            recordingFeedback = "Failed to start recording"
             print("Could not start recording: \(error.localizedDescription)")
         }
     }
@@ -50,13 +65,17 @@ class AudioRecorder: NSObject, ObservableObject {
     func stopRecording() {
         audioRecorder?.stop()
         isRecording = false
+        recordingFeedback = "Processing..."
         
         guard let url = currentRecordingURL else { return }
         
         Task {
             do {
                 isTranscribing = true
-                let text = try await transcriptionManager.transcribeAudio(url: url)
+                guard let manager = transcriptionManager else {
+                    throw NSError(domain: "AudioRecorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "TranscriptionManager not initialized"])
+                }
+                let text = try await manager.transcribeAudio(url: url)
                 let recording = Recording(
                     id: UUID(),
                     date: Date(),
@@ -70,10 +89,17 @@ class AudioRecorder: NSObject, ObservableObject {
                     recordings.append(recording)
                     saveRecordings()
                     isTranscribing = false
+                    recordingFeedback = "Recording saved!"
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        self.recordingFeedback = ""
+                    }
                 }
             } catch {
                 print("Transcription failed: \(error.localizedDescription)")
-                isTranscribing = false
+                await MainActor.run {
+                    recordingFeedback = "Transcription failed"
+                    isTranscribing = false
+                }
             }
         }
     }
@@ -99,5 +125,25 @@ class AudioRecorder: NSObject, ObservableObject {
     func deleteRecordings(at offsets: IndexSet) {
         recordings.remove(atOffsets: offsets)
         saveRecordings()
+    }
+    
+    func getAudioURL(for recording: Recording) -> URL? {
+        let fileManager = FileManager.default
+        if fileManager.fileExists(atPath: recording.url.path) {
+            return recording.url
+        }
+        return nil
+    }
+    
+    func playAudio(url: URL) {
+        do {
+            let audioSession = AVAudioSession.sharedInstance()
+            try audioSession.setCategory(.playback)
+            
+            let player = try AVAudioPlayer(contentsOf: url)
+            player.play()
+        } catch {
+            print("Error playing audio: \(error.localizedDescription)")
+        }
     }
 } 

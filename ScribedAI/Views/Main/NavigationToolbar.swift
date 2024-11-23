@@ -1,18 +1,30 @@
 import SwiftUI
 
 struct NavigationToolbar: View {
+    private enum Destination: String {
+        case history
+        case transcripts
+        case settings
+        
+        var icon: String {
+            switch self {
+            case .history: return "clock.arrow.circlepath"
+            case .transcripts: return "doc.text"
+            case .settings: return "gear"
+            }
+        }
+        
+        var title: String {
+            rawValue.capitalized
+        }
+    }
+    
     var body: some View {
         HStack(spacing: 40) {
-            NavigationLink(value: "history") {
-                ToolbarButton(imageName: "clock.arrow.circlepath", title: "History")
-            }
-            
-            NavigationLink(value: "transcripts") {
-                ToolbarButton(imageName: "doc.text", title: "Transcripts")
-            }
-            
-            NavigationLink(value: "settings") {
-                ToolbarButton(imageName: "gear", title: "Settings")
+            ForEach([Destination.history, .transcripts, .settings], id: \.self) { destination in
+                NavigationLink(value: destination.rawValue) {
+                    ToolbarButton(imageName: destination.icon, title: destination.title)
+                }
             }
         }
         .foregroundColor(.blue)
