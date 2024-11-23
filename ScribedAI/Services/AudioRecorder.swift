@@ -74,16 +74,17 @@ class AudioRecorder: NSObject, ObservableObject {
         
         guard let url = currentRecordingURL else { return }
 
-        Task {
+        Task.detached {
             do {
-                // Update `isTranscribing` on the main thread
+                // Notify UI that transcription is starting
                 await MainActor.run {
                     self.isTranscribing = true
                 }
 
-                guard let manager = transcriptionManager else {
+                guard let manager = self.transcriptionManager else {
                     throw NSError(domain: "AudioRecorder", code: 1, userInfo: [NSLocalizedDescriptionKey: "TranscriptionManager not initialized"])
                 }
+
                 let text = try await manager.transcribeAudio(url: url)
                 let recording = Recording(
                     id: UUID(),
@@ -91,9 +92,10 @@ class AudioRecorder: NSObject, ObservableObject {
                     url: url,
                     text: text,
                     language: "en",
-                    duration: audioRecorder?.currentTime ?? 0
+                    duration: self.audioRecorder?.currentTime ?? 0
                 )
 
+                // Update recordings on the main thread
                 await MainActor.run {
                     self.recordings.append(recording)
                     self.saveRecordings()

@@ -28,16 +28,22 @@ class TranscriptionManager: ObservableObject {
         }
     }
 
-    @MainActor
     func transcribeAudio(url: URL) async throws -> String {
         guard let whisperKit = whisperKit else {
             throw NSError(domain: "TranscriptionManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "WhisperKit not initialized"])
         }
 
-        isLoading = true
-        defer { isLoading = false }
+        // Update isLoading on main thread
+        await MainActor.run {
+            self.isLoading = true
+        }
+        defer {
+            Task { @MainActor in
+                self.isLoading = false
+            }
+        }
 
-        // Transcribe the audio file and return the first result
+        // Perform transcription on background thread
         let results = try await whisperKit.transcribe(audioPath: url.path)
         return results.first?.text ?? ""
     }
