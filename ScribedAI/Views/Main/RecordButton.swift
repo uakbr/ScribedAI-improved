@@ -20,15 +20,22 @@ struct RecordButton: View {
                         .fill(audioRecorder.isRecording ? .red.opacity(0.1) : .blue.opacity(0.1))
                         .frame(width: 100, height: 100)
                     
-                    Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
-                        .font(.system(size: 72))
-                        .foregroundColor(audioRecorder.isRecording ? .red : .blue)
-                        .symbolEffect(.bounce, options: .repeat(1), isActive: audioRecorder.isRecording)
+                    if #available(iOS 18.0, *) {
+                        Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 72))
+                            .foregroundColor(audioRecorder.isRecording ? .red : .blue)
+                            .symbolEffect(.bounce, options: .repeat(1), isActive: audioRecorder.isRecording)
+                    } else {
+                        Image(systemName: audioRecorder.isRecording ? "stop.circle.fill" : "mic.circle.fill")
+                            .font(.system(size: 72))
+                            .foregroundColor(audioRecorder.isRecording ? .red : .blue)
+                    }
                 }
             }
             .buttonStyle(.borderless)
             .disabled(audioRecorder.isTranscribing)
             .shadow(color: colorScheme == .dark ? .clear : .black.opacity(0.1), radius: 10)
+            .accessibilityLabel(audioRecorder.isRecording ? "Stop Recording" : "Start Recording")
             
             if !audioRecorder.recordingFeedback.isEmpty {
                 Text(audioRecorder.recordingFeedback)

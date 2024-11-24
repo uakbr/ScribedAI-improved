@@ -41,7 +41,13 @@ struct ContentView: View {
                     )
                 }
             }
+            .overlay {
+                if audioRecorder.isTranscribing {
+                    LoadingView()
+                }
+            }
         }
+        .preferredColorScheme(appSettings.isDarkMode ? .dark : .light)
         .onReceive(audioRecorder.$errorMessage.compactMap { $0 }) { errorMessage in
             showErrorAlert = true
         }

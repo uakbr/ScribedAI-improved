@@ -42,7 +42,7 @@ struct TranscriptsView: View {
         .sheet(item: $selectedTranscript) { transcript in
             TranscriptDetailView(transcript: transcript, audioRecorder: audioRecorder)
         }
-        .onReceive(audioRecorder.transcriptionManager?.$errorMessage ?? Just(nil).eraseToAnyPublisher()) { errorMessage in
+        .onReceive(audioRecorder.transcriptionManager?.$errorMessage.eraseToAnyPublisher() ?? Just(nil).eraseToAnyPublisher()) { errorMessage in
             if errorMessage != nil {
                 showErrorAlert = true
             }
@@ -116,7 +116,14 @@ struct TranscriptDetailView: View {
     @ObservedObject var audioRecorder: AudioRecorder
     @Environment(\.dismiss) private var dismiss
     @State private var isPlaying = false
-    
+    @State private var editableText: String
+
+    init(transcript: Recording, audioRecorder: AudioRecorder) {
+        self.transcript = transcript
+        self.audioRecorder = audioRecorder
+        _editableText = State(initialValue: transcript.text)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -146,7 +153,7 @@ struct TranscriptDetailView: View {
                     
                     Divider()
                     
-                    Text(transcript.text)
+                    TextEditor(text: $editableText)
                         .font(.body)
                     
                     HStack {
@@ -163,7 +170,15 @@ struct TranscriptDetailView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button("Done") { dismiss() }
+                    Button(action: {
+                        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                              let window = windowScene.windows.first else { return }
+                        
+                        let activityVC = UIActivityViewController(activityItems: [transcript.text], applicationActivities: nil)
+                        window.rootViewController?.present(activityVC, animated: true)
+                    }) {
+                        Image(systemName: "square.and.arrow.up")
+                    }
                 }
             }
         }
